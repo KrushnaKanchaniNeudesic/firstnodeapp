@@ -15,7 +15,7 @@ router.post('/users', function (req, res) {
 
 });
 
-router.get('/users',auth, (req, res) => {
+router.get('/users', auth, (req, res) => {
     User.find({}).then((users) => {
         res.status(200).send(users);
     }).catch(() => {
@@ -50,6 +50,37 @@ router.post('/users/login', async (req, res) => {
         res.status(400).send(error);
     }
 })
+
+const multer = require('multer');
+const upload = multer({
+    limits: {
+        fileSize: 10000000
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(doc|docx)$/)) {
+
+        }
+
+        cb(undefined, true);
+    }
+})
+
+router.post('/users/me/avatar', auth, upload.single('upload'), async (req, res) => {
+
+    req.user.avatar = req.file.buffer;
+    await  req.user.save();
+    res.status(201).send();
+
+});
+
+router.get('/users/:id/avatar', async (req, res) => {
+
+  const user = await User.findById(req.params.id);
+
+  res.set('Content-Type', 'image/jpg');
+  res.send(user.avatar);
+
+});
 
 module.exports = router;
 
